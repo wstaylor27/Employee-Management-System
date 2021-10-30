@@ -1,5 +1,7 @@
-SELECT department.department_name AS department, roles.title
-FROM roles
+SELECT employee.id, employee.first_name AS "first name", employee.last_name AS "last name", roles.title, department.department_name AS "department", roles.salary AS "salary"
+FROM employee
+LEFT JOIN roles
+ON roles.id = employee.id
 LEFT JOIN department
-ON roles.department_id = department.id
-ORDER BY department.department_name;
+ON department.id = roles.department_id
+ORDER BY employee.id;

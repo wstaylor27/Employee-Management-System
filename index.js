@@ -74,7 +74,7 @@ const viewEmployees = () => {
     ORDER BY employee.id`;
 
   db.query(sql, (err, res) => {
-    console.table(res);
+    
     employeeSystem();
   });
 };
@@ -86,23 +86,23 @@ const addEmployee = () => {
   db.promise()
     .query("SELECT id, title FROM company_db.roles;")
     .then(([rows, fields]) => {
-      console.log(rows);
+      
       roleChoices = rows.map(row => ({
           name: row.title,
           value: row.id
       }))
-      console.log(roleChoices);
+      
       db.promise()
         .query(
           `SELECT id, concat(first_name, " ", last_name) AS name FROM company_db.employee;`
         )
         .then(([rows, fields]) => {
-          console.log(rows);
+          
           managerChoices = rows.map(row => ({
             name: row.name,
             value: row.id
         }))
-        console.log(managerChoices);
+       
           inquirer
             .prompt([
               {

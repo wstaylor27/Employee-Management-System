@@ -58,16 +58,40 @@ const employeeSystem = () => {
 
 // View all employees
 const viewEmployees = () => {
-    const sql = `SELECT id, first_name, last_name, role_id, manager_id FROM employee`;
+    const sql = `
+    SELECT 
+        employee.id, 
+        employee.first_name AS "first name", 
+        employee.last_name AS "last name", 
+        roles.title, 
+        department.department_name AS "department", 
+        roles.salary AS "salary",
+        CONCAT(manager.first_name, " ", manager.last_name) AS "manager"
+    FROM employee
+    LEFT JOIN roles
+        ON roles.id = employee.role_id
+    LEFT JOIN department
+        ON department.id = roles.department_id
+    LEFT JOIN employee manager
+        ON manager.id = employee.manager_id
+    ORDER BY employee.id`;
 
     db.query(sql, (err, res) => {
         console.table(res);
         employeeSystem();
     });
 }
+
+const getManagerList = async () => {
+    const data = await db.execute('SELECT id, title FROM company_db.roles;');
+    return data;
+}
+
 // Add an employee
-const addEmployee = () => {
-    inquirer.prompt([
+const addEmployee = async () => {
+    const managerData = await getManagerList();
+    console.log(managerData);
+    const answer = await inquirer.prompt([
         {
             type: "input",
             name: "firstName",
@@ -89,16 +113,14 @@ const addEmployee = () => {
             message: "What is your manager ID?"
         },
     ])
-    .then((answer) => {
+        console.log(answer);
         const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
-        db.query(sql,[answer.firstName, answer.lastName, answer.role_id, answer.manager_id], (err, res) => {
+        db.query(sql,[answer.firstName, answer.lastName, answer.roleID, answer.managerID], (err, res) => {
             if(err) throw err;
         },
             console.log('success!')
         )
         employeeSystem();
-    }
-    )
 };
 // Update an employee
 const updateEmployee = () => {
@@ -132,7 +154,7 @@ const updateEmployee = () => {
     ])
     .then((answer) => {
         const sql = `UPDATE role SET title = ?, salary = ?, department_id = ? WHERE id =?`;
-        db.query(sql, [answer.newRole, answer.newSalary, answer.newDepartment, paresInt(answer.currentEmployeeID)], (err, res) => {
+        db.query(sql, [answer.newRole, answer.newSalary, answer.newDepartment, parseInt(answer.currentEmployeeID)], (err, res) => {
             if(err) throw err;
         },
             console.log('success!')

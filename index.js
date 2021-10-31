@@ -175,7 +175,7 @@ const updateEmployee = () => {
 
           db.promise()
             .query(
-              `SELECT id, concat(first_name, " ", last_name) AS manager FROM company_db.employee;`
+              `SELECT id, concat(first_name, " ", last_name) AS name FROM company_db.employee;`
             )
             .then(([rows, fields]) => {
               managerChoices = rows.map((row) => ({

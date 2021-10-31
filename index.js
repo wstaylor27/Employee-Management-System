@@ -223,13 +223,15 @@ const updateEmployee = () => {
                   },
                 ])
                 .then((answer) => {
-                  const sql = `UPDATE role SET title = ?, salary = ?, manager_ID = ?,department_id = ? WHERE id =?`;
+                  const sql = `UPDATE role SET title = ?, salary = ?, manager_id = ?, department_id = ? WHERE id =?`;
+                  console.log(answer);
                   db.query(
                     sql,
                     [
                       answer.currentEmployeeID,
                       answer.newRole,
                       answer.newSalary,
+                      answer.managerID,
                       answer.newDepartment,
                     ],
                     (err, res) => {

@@ -74,7 +74,9 @@ const viewEmployees = () => {
     ORDER BY employee.id`;
 
   db.query(sql, (err, res) => {
-    
+    if (err) throw err;
+    console.table(res);
+
     employeeSystem();
   });
 };
@@ -86,23 +88,21 @@ const addEmployee = () => {
   db.promise()
     .query("SELECT id, title FROM company_db.roles;")
     .then(([rows, fields]) => {
-      
-      roleChoices = rows.map(row => ({
-          name: row.title,
-          value: row.id
-      }))
-      
+      roleChoices = rows.map((row) => ({
+        name: row.title,
+        value: row.id,
+      }));
+
       db.promise()
         .query(
           `SELECT id, concat(first_name, " ", last_name) AS name FROM company_db.employee;`
         )
         .then(([rows, fields]) => {
-          
-          managerChoices = rows.map(row => ({
+          managerChoices = rows.map((row) => ({
             name: row.name,
-            value: row.id
-        }))
-       
+            value: row.id,
+          }));
+
           inquirer
             .prompt([
               {
@@ -119,13 +119,13 @@ const addEmployee = () => {
                 type: "list",
                 name: "roleID",
                 message: "What is the employee's role?",
-                choices: roleChoices
+                choices: roleChoices,
               },
               {
                 type: "list",
                 name: "managerID",
                 message: "Who is the manager?",
-                choices: managerChoices
+                choices: managerChoices,
               },
             ])
             .then((answer) => {
@@ -151,47 +151,98 @@ const addEmployee = () => {
 };
 // Update an employee
 const updateEmployee = () => {
-  inquirer
-    .prompt([
-      {
-        type: "input",
-        name: "currentEmployeeID",
-        message: "What is the ID of the employee you want to update?",
-      },
-      {
-        type: "input",
-        name: "newRole",
-        message: "What is their new title?",
-      },
-      {
-        type: "input",
-        name: "newSalary",
-        message: "What is their new salary?",
-      },
-      {
-        type: "list",
-        name: "newDepartment",
-        message: "What department do they belong to?",
-        choices: ["Sales", "Engineering", "Legal", "Finance"],
-      },
-    ])
-    .then((answer) => {
-      const sql = `UPDATE role SET title = ?, salary = ?, department_id = ? WHERE id =?`;
-      db.query(
-        sql,
-        [
-          answer.newRole,
-          answer.newSalary,
-          answer.newDepartment,
-          parseInt(answer.currentEmployeeID),
-        ],
-        (err, res) => {
-          if (err) throw err;
-        },
-        console.log("success!")
-      );
-      employeeSystem();
+  let employeeChoices = [];
+  let roleChoices = [];
+  let managerChoices = [];
+
+  db.promise()
+    .query(
+      `SELECT id, concat(first_name, " ", last_name) AS name FROM company_db.employee;`
+    )
+    .then(([rows, fields]) => {
+      employeeChoices = rows.map((row) => ({
+        name: row.name,
+        value: row.id,
+      }));
+
+      db.promise()
+        .query(`SELECT id, title FROM company_db.roles;`)
+        .then(([rows, fields]) => {
+          roleChoices = rows.map((row) => ({
+            name: row.title,
+            value: row.id,
+          }));
+
+          db.promise()
+            .query(
+              `SELECT id, concat(first_name, " ", last_name) AS manager FROM company_db.employee;`
+            )
+            .then(([rows, fields]) => {
+              managerChoices = rows.map((row) => ({
+                name: row.name,
+                value: row.id,
+              }));
+              db.promise()
+        .query(`SELECT id, department_name FROM company_db.department`)
+        .then(([rows, fields]) => {
+            departmentChoices = rows.map((row) => ({
+                name: row.department_name,
+                value: row.id,
+            }))
+
+              inquirer
+                .prompt([
+                  {
+                    type: "list",
+                    name: "currentEmployeeID",
+                    message: "Who is the employee you want to update?",
+                    choices: employeeChoices,
+                  },
+                  {
+                    type: "list",
+                    name: "newRole",
+                    message: "What is their new title?",
+                    choices: roleChoices,
+                  },
+                  {
+                    type: "input",
+                    name: "newSalary",
+                    message: "What is their new salary?",
+                  },
+                  {
+                    type: "list",
+                    name: "managerID",
+                    message: "Who is the manager?",
+                    choices: managerChoices,
+                  },
+                  {
+                    type: "list",
+                    name: "newDepartment",
+                    message: "What department do they belong to?",
+                    choices: departmentChoices
+                  },
+                ])
+                .then((answer) => {
+                  const sql = `UPDATE role SET title = ?, salary = ?, manager_ID = ?,department_id = ? WHERE id =?`;
+                  db.query(
+                    sql,
+                    [
+                      answer.currentEmployeeID,
+                      answer.newRole,
+                      answer.newSalary,
+                      answer.newDepartment,
+                    ],
+                    (err, res) => {
+                      if (err) throw err;
+                    },
+                    console.log("success!")
+                  );
+                  employeeSystem();
+                });
+            });
+        });
     });
+});
 };
 // View all roles
 const viewRoles = () => {
@@ -205,6 +256,15 @@ const viewRoles = () => {
 
 // Add a role
 const addRole = () => {
+    let departmentChoices = [];
+    db.promise()
+        .query(`SELECT id, department_name FROM company_db.department`)
+        .then(([rows, fields]) => {
+            departmentChoices = rows.map((row) => ({
+                name: row.department_name,
+                value: row.id,
+            }))
+                    
   inquirer
     .prompt([
       {
@@ -218,13 +278,14 @@ const addRole = () => {
         message: "What is the salary of the role?",
       },
       {
-        type: "input",
+        type: "list",
         name: "departmentID",
-        message: "What is the department ID of this role?",
+        message: "What is the department of this role?",
+        choices: departmentChoices
       },
     ])
     .then((answer) => {
-      const sql = `INSERT INTO employee (title, salary, department_id) VALUES (?, ?, ?)`;
+      const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
       db.query(
         sql,
         [answer.title, answer.salary, answer.departmentID],
@@ -232,9 +293,15 @@ const addRole = () => {
           if (err) throw err;
         },
         console.log("success!")
-      );
-      employeeSystem();
+        
+        );
+        
+        employeeSystem();
+      
+      
     });
+    
+})
 };
 
 // View all departments

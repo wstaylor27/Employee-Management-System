@@ -41,6 +41,7 @@ const employeeSystem = () => {
           break;
         case "View All Roles":
           viewRoles();
+          break;
         case "Add Role":
           addRole();
           break;
@@ -49,6 +50,7 @@ const employeeSystem = () => {
           break;
         case "Add Department":
           addDepartment();
+          break;
       }
     });
 };
@@ -223,7 +225,7 @@ const updateEmployee = () => {
                   },
                 ])
                 .then((answer) => {
-                  const sql = `UPDATE role SET title = ?, salary = ?, manager_id = ?, department_id = ? WHERE id =?`;
+                  const sql = `UPDATE role SET id = ?, salary = ?, manager_id = ?, department_id = ? WHERE id =?`;
                   console.log(answer);
                   db.query(
                     sql,

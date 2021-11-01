@@ -155,7 +155,7 @@ const addEmployee = () => {
 const updateEmployee = () => {
   let employeeChoices = [];
   let roleChoices = [];
-  let managerChoices = [];
+  
 
   db.promise()
     .query(
@@ -175,15 +175,7 @@ const updateEmployee = () => {
             value: row.id,
           }));
 
-          db.promise()
-            .query(
-              `SELECT id, concat(first_name, " ", last_name) AS name FROM company_db.employee;`
-            )
-            .then(([rows, fields]) => {
-              managerChoices = rows.map((row) => ({
-                name: row.name,
-                value: row.id,
-              }));
+          
               db.promise()
         .query(`SELECT id, department_name FROM company_db.department`)
         .then(([rows, fields]) => {
@@ -215,7 +207,7 @@ const updateEmployee = () => {
                     type: "list",
                     name: "managerID",
                     message: "Who is the manager?",
-                    choices: managerChoices,
+                    choices: employeeChoices,
                   },
                   {
                     type: "list",
@@ -225,7 +217,7 @@ const updateEmployee = () => {
                   },
                 ])
                 .then((answer) => {
-                  const sql = `UPDATE role SET id = ?, salary = ?, manager_id = ?, department_id = ? WHERE id =?`;
+                  const sql = `UPDATE employee SET employee.role_id = ?, roles.salary = ?, employee.manager_id = ?, department.department_id = ? WHERE employee.id =?`;
                   console.log(answer);
                   db.query(
                     sql,
@@ -244,16 +236,26 @@ const updateEmployee = () => {
                   employeeSystem();
                 });
             });
-        });
+        
     });
 });
 };
 // View all roles
 const viewRoles = () => {
-  const sql = `SELECT id, title, salary, department_id FROM roles`;
+  const sql = `
+  SELECT
+    roles.id, 
+    roles.title, 
+    roles.salary, 
+    department.department_name AS "department"
+  FROM roles
+  LEFT JOIN department
+    ON department.id = roles.department_id`;
 
   db.query(sql, (err, res) => {
+    if (err) throw err;
     console.table(res);
+
     employeeSystem();
   });
 };

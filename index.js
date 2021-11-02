@@ -155,7 +155,6 @@ const addEmployee = () => {
 const updateEmployee = () => {
   let employeeChoices = [];
   let roleChoices = [];
-  
 
   db.promise()
     .query(
@@ -175,14 +174,13 @@ const updateEmployee = () => {
             value: row.id,
           }));
 
-          
-              db.promise()
-        .query(`SELECT id, department_name FROM company_db.department`)
-        .then(([rows, fields]) => {
-            departmentChoices = rows.map((row) => ({
+          db.promise()
+            .query(`SELECT id, department_name FROM company_db.department`)
+            .then(([rows, fields]) => {
+              departmentChoices = rows.map((row) => ({
                 name: row.department_name,
                 value: row.id,
-            }))
+              }));
 
               inquirer
                 .prompt([
@@ -198,47 +196,22 @@ const updateEmployee = () => {
                     message: "What is their new title?",
                     choices: roleChoices,
                   },
-                  {
-                    type: "input",
-                    name: "newSalary",
-                    message: "What is their new salary?",
-                  },
-                  {
-                    type: "list",
-                    name: "managerID",
-                    message: "Who is the manager?",
-                    choices: employeeChoices,
-                  },
-                  {
-                    type: "list",
-                    name: "newDepartment",
-                    message: "What department do they belong to?",
-                    choices: departmentChoices
-                  },
                 ])
                 .then((answer) => {
-                  const sql = `UPDATE employee SET employee.role_id = ?, roles.salary = ?, employee.manager_id = ?, department.department_id = ? WHERE employee.id =?`;
+                  const sql = `UPDATE employee SET role_id = ? WHERE employee.id =?`;
                   console.log(answer);
                   db.query(
                     sql,
-                    [
-                      answer.currentEmployeeID,
-                      answer.newRole,
-                      answer.newSalary,
-                      answer.managerID,
-                      answer.newDepartment,
-                    ],
+                    [answer.newRole, answer.currentEmployeeID],
                     (err, res) => {
                       if (err) throw err;
-                    },
-                    console.log("success!")
+                      console.log("success!"), employeeSystem();
+                    }
                   );
-                  employeeSystem();
                 });
             });
-        
+        });
     });
-});
 };
 // View all roles
 const viewRoles = () => {
@@ -262,52 +235,48 @@ const viewRoles = () => {
 
 // Add a role
 const addRole = () => {
-    let departmentChoices = [];
-    db.promise()
-        .query(`SELECT id, department_name FROM company_db.department`)
-        .then(([rows, fields]) => {
-            departmentChoices = rows.map((row) => ({
-                name: row.department_name,
-                value: row.id,
-            }))
-                    
-  inquirer
-    .prompt([
-      {
-        type: "input",
-        name: "title",
-        message: "What is the title of the role?",
-      },
-      {
-        type: "input",
-        name: "salary",
-        message: "What is the salary of the role?",
-      },
-      {
-        type: "list",
-        name: "departmentID",
-        message: "What is the department of this role?",
-        choices: departmentChoices
-      },
-    ])
-    .then((answer) => {
-      const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
-      db.query(
-        sql,
-        [answer.title, answer.salary, answer.departmentID],
-        (err, res) => {
-          if (err) throw err;
-        },
-        console.log("success!")
-        
-        );
-        
-        employeeSystem();
-      
-      
+  let departmentChoices = [];
+  db.promise()
+    .query(`SELECT id, department_name FROM company_db.department`)
+    .then(([rows, fields]) => {
+      departmentChoices = rows.map((row) => ({
+        name: row.department_name,
+        value: row.id,
+      }));
+
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            name: "title",
+            message: "What is the title of the role?",
+          },
+          {
+            type: "input",
+            name: "salary",
+            message: "What is the salary of the role?",
+          },
+          {
+            type: "list",
+            name: "departmentID",
+            message: "What is the department of this role?",
+            choices: departmentChoices,
+          },
+        ])
+        .then((answer) => {
+          const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+          db.query(
+            sql,
+            [answer.title, answer.salary, answer.departmentID],
+            (err, res) => {
+              if (err) throw err;
+            },
+            console.log("success!")
+          );
+
+          employeeSystem();
+        });
     });
-    
-})
 };
 
 // View all departments
